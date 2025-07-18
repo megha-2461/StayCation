@@ -86,4 +86,4 @@ const initGeoDB = async () => {
   console.log("Seeded listings with geocoded geometry");
 };
   
-initGeoDB();   // Insert listings with geocoded coordinates
+// initGeoDB();   // Insert listings with geocoded coordinates
