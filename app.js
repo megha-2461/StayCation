@@ -2,6 +2,7 @@ const express=require('express');
 const app=express();
 const mongoose=require('mongoose');
 
+
 //for using ejs , do following 3 steps:
 const path = require("path");
 app.set("view engine", "ejs");
@@ -17,6 +18,9 @@ app.use(express.static(path.join(__dirname, "/public"))); //to use css files or 
 
 app.use(express.urlencoded({extended : true})) //to parse data
 const ExpressError = require("./utils/ExpressError.js");
+const session = require("express-session");
+const flash = require("connect-flash");
+
 const listings = require("./routes/listing.js")
 const reviews = require("./routes/review.js")
 
@@ -33,10 +37,30 @@ async function main() {
     await mongoose.connect(MONGO_URL)
 }
 
+const sessionOptions = {
+  secret: "mysupersecretcode",
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    expires: Date.now() + 7*24*60*60*1000,
+    maxAge: 7*24*60*60*1000,
+    httpOnly: true //to prevent cross scripting attacks
+  }
+}
 //basic api:
 app.get("/", (req, res)=>{
     res.send("i am root");
 });
+
+app.use(session(sessionOptions));
+app.use(flash()); //must be before routes
+
+app.use((req, res, next)=>{
+  res.locals.success = req.flash("success");
+  res.locals.error = req.flash("error");
+  // console.log(res.locals.success);
+  next();
+})
  
 app.use("/listings", listings);
 app.use("/listings/:id/reviews", reviews);
