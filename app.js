@@ -35,6 +35,10 @@ const pageRouter = require("./routes/pages.js");
 
 
 const dbUrl = process.env.ATLASDB_URL;
+const secret = process.env.SECRET;
+
+console.log("MongoDB URL:", dbUrl);
+console.log("Session Secret:", secret);
 
 main()
 .then(()=>{
@@ -48,7 +52,7 @@ async function main() {
     await mongoose.connect(dbUrl)
 }
 
-const secret = process.env.SECRET;
+
 
 const store = MongoStore.create({
   mongoUrl: dbUrl,
