@@ -26,6 +26,7 @@ flex: 1;
 
 /* Footer */
  .f-info-links a{
+    margin-left: 0.5rem;
  text-decoration: none;
  color: #222222;
 }

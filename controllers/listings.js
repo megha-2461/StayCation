@@ -1,9 +1,57 @@
 const Listing = require("../models/listing");
 
-module.exports.index = async (req, res)=>{
-   const allListings = await Listing.find({});
-   res.render("listings/index.ejs", {allListings}); //views folder no need to include in path,handled
+// module.exports.index = async (req, res)=>{
+//    const allListings = await Listing.find({});
+//    res.render("listings/index.ejs", {allListings}); //views folder no need to include in path,handled
+// };
+
+
+module.exports.index = async (req, res) => {
+  try {
+    const { category, q } = req.query;
+    let query = {};
+
+    if (category) {
+      query.category = category;
+    }
+
+    if (q) {
+      query.$or = [
+        { title: { $regex: q, $options: 'i' } },
+        { location: { $regex: q, $options: 'i' } },
+        { country: { $regex: q, $options: 'i' } }
+      ];
+    }
+
+    const listings = await Listing.find(query);
+    res.render("listings/index", { listings, category });
+  } catch (e) {
+    console.log(e);
+    req.flash("error", "Cannot load listings at the moment");
+    res.redirect("/");
+  }
 };
+
+
+// module.exports.index = async (req, res) => {
+//  try {
+//     const { category } = req.query;
+//     let listings;
+
+//     if (category) {
+//       listings = await Listing.find({ category });
+//     } else {
+//       listings = await Listing.find({});
+//     }
+
+//     res.render("listings/index", { listings, category });
+//   } catch (e) {
+//     console.log(e);
+//     req.flash("error", "Cannot load listings at the moment");
+//     res.redirect("/");
+//   }
+// };
+
 
 module.exports.renderNewForm = (req, res)=>{
     res.render("listings/new.ejs");

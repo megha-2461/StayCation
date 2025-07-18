@@ -22,6 +22,7 @@ app.use(express.static(path.join(__dirname, "/public"))); //to use css files or 
 app.use(express.urlencoded({extended : true})) //to parse data
 const ExpressError = require("./utils/ExpressError.js");
 const session = require("express-session");
+const MongoStore = require('connect-mongo');
 const flash = require("connect-flash");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
@@ -30,9 +31,11 @@ const User = require("./models/user.js");
 const listingsRouter = require("./routes/listing.js")
 const reviewsRouter = require("./routes/review.js")
 const userRouter = require("./routes/user.js")
+const pageRouter = require("./routes/pages.js");
 
 
-const   MONGO_URL=process.env.MONGO_URL;
+const dbUrl = process.env.ATLASDB_URL;
+
 main()
 .then(()=>{
 console.log("connected to DB");
@@ -42,11 +45,24 @@ console.log(err);
 });
 
 async function main() {
-    await mongoose.connect(MONGO_URL)
+    await mongoose.connect(dbUrl)
 }
 
+const secret = process.env.SECRET;
+
+const store = MongoStore.create({
+  mongoUrl: dbUrl,
+  crypto: {secret},
+  touchAfter: 24*3600,
+})
+
+store.on("error", ()=>{
+  console.log("ERROR IN MONGO SESSION STORE");
+})
+
 const sessionOptions = {
-  secret: "mysupersecretcode",
+  store,
+  secret,
   resave: false,
   saveUninitialized: true,
   cookie: {
@@ -56,9 +72,11 @@ const sessionOptions = {
   }
 }
 //basic api:
-app.get("/", (req, res)=>{
-    res.send("i am root");
-});
+// app.get("/", (req, res)=>{
+//     res.send("i am root");
+// });
+
+
 
 app.use(session(sessionOptions));
 app.use(flash()); //must be before routes
@@ -75,6 +93,7 @@ app.use((req, res, next)=>{
   res.locals.success = req.flash("success");
   res.locals.error = req.flash("error");
   res.locals.currUser = req.user;
+  res.locals.email = process.env.EMAIL;
   // console.log(res.locals.success);
   next();
 })
@@ -93,7 +112,7 @@ res.send(registeredUser);
 app.use("/listings", listingsRouter);
 app.use("/listings/:id/reviews", reviewsRouter);
 app.use("/", userRouter);
-
+app.use("/", pageRouter);
 
 
 //if above err don't match then this will be executed for all

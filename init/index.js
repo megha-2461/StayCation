@@ -25,6 +25,19 @@ console.log("data initialised")
 
 // initDB();
 
+//adding categories to already listed samples
+const categories = [
+  "Trending",
+  "Rooms",
+  "Iconic Cities",
+  "Mountains",
+  "Castles",
+  "Amazing Pools",
+  "Camping",
+  "Farms",
+  "Arctic"
+];
+
 async function geocode(address) {
   try {
     const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`, {
@@ -55,11 +68,15 @@ const initGeoDB = async () => {
   const ownerId = "687343ef0c286ccf217784a9";
   const listingsWithGeo = [];
 
-  for (let listing of initData.data) {
-    const geometry = await geocode(listing.location);
-    listingsWithGeo.push({ ...listing, owner: ownerId, geometry });
-    console.log(`Geocoded: ${listing.location}`);
-  }
+ for (let listing of initData.data) {
+  const geometry = await geocode(listing.location);
+
+  const category = categories[Math.floor(Math.random() * categories.length)]; // random category
+
+  listingsWithGeo.push({ ...listing, owner: ownerId, geometry, category });
+  console.log(`Geocoded: ${listing.location}, Assigned category: ${category}`);
+}
+
 
   await Listing.insertMany(listingsWithGeo);
   console.log("Seeded listings with geocoded geometry");

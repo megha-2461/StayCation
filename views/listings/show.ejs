@@ -13,7 +13,8 @@
   <div class="card-body">
     <p class="card-text">Owned By: <i><%= listing.owner.username %></i></p>
         <p class="card-text">
-        <%= listing.decription%></p>
+        <%= listing.description%></p>
+
          <!-- toLocaleString("en-IN"): indian standara commas -->
        <p class="card-text">&#8377;<%= listing.price.toLocaleString("en-IN")%></p> 
        <p class="card-text"> <%= listing.location%> </p>

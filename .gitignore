@@ -1,5 +1,5 @@
-node_modules
+node_modules/
 learning
-
-.env
 sequence.txt
+.env
+**/.DS_Store
