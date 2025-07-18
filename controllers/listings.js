@@ -29,17 +29,38 @@ res.render("listings/show.ejs", {listing});
 
 
 module.exports.createListing = async (req, res, next)=>{
+   try {
+    const address = req.body.listing.location;
+    // Fetch coordinates using Nominatim
+    const geoResponse = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`, {
+      headers: {
+        'User-Agent': 'StayCation/1.0'
+      }
+    });
+
+    const geoData = await geoResponse.json();
+     let coordinates = [0, 0]; 
+    if (geoData.length > 0) {
+      coordinates = [parseFloat(geoData[0].lon), parseFloat(geoData[0].lat)];
+    }
+
     let url = req.file.path;
     let filename = req.file.filename;
-    // console.log(url, "..", filename);
    const newListing = new Listing(req.body.listing);
    newListing.owner = req.user._id;
    newListing.image={url, filename};
-   await newListing.save()
+   newListing.geometry = {type: "Point", coordinates: coordinates}
+   let savedListing = await newListing.save()
+   console.log(savedListing);
    req.flash("success", "New Listing created!")
     res.redirect("/listings");
     
-};
+   } catch (err) {
+    console.error("Error during geocoding or listing creation:", err);
+    req.flash("error", "Something went wrong.");
+    res.redirect("/listings/new");
+  }
+  };
 
 module.exports.renderEditForm = async (req, res) => {
   let { id } = req.params;

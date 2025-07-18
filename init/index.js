@@ -23,4 +23,46 @@ await Listing.insertMany(initData.data); //adds new data
 console.log("data initialised")
 };
 
-initDB();
+// initDB();
+
+async function geocode(address) {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`, {
+      headers: {
+        'User-Agent': 'StayCationSeeder/1.0'
+      }
+    });
+    const data = await res.json();
+    if (data.length > 0) {
+      return {
+        type: "Point",
+        coordinates: [parseFloat(data[0].lon), parseFloat(data[0].lat)]
+      };
+    }
+  } catch (err) {
+    console.error(`Failed to geocode "${address}":`, err);
+  }
+  return {
+    type: "Point",
+    coordinates: [0, 0] 
+  };
+}
+
+const initGeoDB = async () => {
+  await Listing.deleteMany({});
+  console.log("🗑️ Old listings deleted");
+
+  const ownerId = "687343ef0c286ccf217784a9";
+  const listingsWithGeo = [];
+
+  for (let listing of initData.data) {
+    const geometry = await geocode(listing.location);
+    listingsWithGeo.push({ ...listing, owner: ownerId, geometry });
+    console.log(`Geocoded: ${listing.location}`);
+  }
+
+  await Listing.insertMany(listingsWithGeo);
+  console.log("Seeded listings with geocoded geometry");
+};
+  
+// initGeoDB();   // Insert listings with geocoded coordinates

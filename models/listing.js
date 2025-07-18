@@ -26,7 +26,22 @@ const listingSchema = new Schema({
   owner: {
     type: Schema.Types.ObjectId,
     ref: "User"
+  },
+  geometry: {
+    type: {
+  type: String,
+  enum: ['Point'],
+  required: true,
+  default: 'Point'
+    },
+  coordinates: {
+    type: [Number],
+    required: true,
+    default: [0, 0]
+  },
+
   }
+  
 });
 
 listingSchema.post("findOneAndDelete", async(listing)=>{
